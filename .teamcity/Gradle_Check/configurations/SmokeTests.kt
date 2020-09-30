@@ -30,7 +30,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
         notQuick = true,
         extraParameters = buildScanTag("SmokeTests") +
             " -PtestJavaHome=$testJavaHome" +
-            " -PtestJavaVersion=${testJava.version}" +
+            " -PtestJavaVersion=${testJava.version} " +
             explicitToolchains("$buildJavaHome,$testJavaHome")
     )
 })

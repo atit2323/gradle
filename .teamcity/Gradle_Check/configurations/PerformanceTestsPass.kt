@@ -68,7 +68,7 @@ subprojects/$performanceProjectName/build/$taskName => report/
             "-Porg.gradle.performance.db.username" to "%performance.db.username%",
             "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%"
         ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) } +
-        explicitToolchains(os.buildJavaHome()).joinToString(" ")
+        " " + explicitToolchains(os.buildJavaHome()).joinToString(" ")
     )
 
     dependencies {
