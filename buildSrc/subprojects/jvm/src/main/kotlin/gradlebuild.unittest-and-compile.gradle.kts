@@ -157,9 +157,13 @@ fun configureJarTasks() {
 
 fun Test.configureJvmForTest() {
     val jvmForTest = project.buildJvms.testJvm.get()
+    val jvmVersionForTest = project.buildJvms.testJavaVersion.get()
 
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
-    executable = jvmForTest.javaExecutable.asFile.absolutePath
+    javaLauncher.set(project.javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(jvmVersionForTest))
+    })
+//    executable = jvmForTest.javaExecutable.asFile.absolutePath
     environment["JAVA_HOME"] = jvmForTest.installationDirectory.asFile.absolutePath
     if (jvmForTest.javaVersion.isJava7) {
         // enable class unloading
