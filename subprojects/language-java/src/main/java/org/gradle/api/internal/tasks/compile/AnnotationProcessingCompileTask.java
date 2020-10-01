@@ -19,11 +19,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
-import org.gradle.api.internal.tasks.compile.processing.AggregatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
-import org.gradle.api.internal.tasks.compile.processing.DynamicProcessor;
-import org.gradle.api.internal.tasks.compile.processing.IsolatingProcessor;
-import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
 import org.gradle.api.internal.tasks.compile.processing.SupportedOptionsCollectingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.TimeTrackingProcessor;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -151,13 +147,32 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
     private Processor decorateForIncrementalProcessing(Processor processor, IncrementalAnnotationProcessorType type, AnnotationProcessorResult processorResult) {
         switch (type) {
             case ISOLATING:
-                return new IsolatingProcessor(processor, processorResult);
+                return newProcessor("org.gradle.api.internal.tasks.compile.processing.IsolatingProcessor", processor, processorResult);
             case AGGREGATING:
-                return new AggregatingProcessor(processor, processorResult);
+                return newProcessor("org.gradle.api.internal.tasks.compile.processing.AggregatingProcessor", processor, processorResult);
             case DYNAMIC:
-                return new DynamicProcessor(processor, processorResult);
+                return newProcessor("org.gradle.api.internal.tasks.compile.processing.DynamicProcessor", processor, processorResult);
             default:
-                return new NonIncrementalProcessor(processor, processorResult);
+                return newProcessor("org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor", processor, processorResult);
+        }
+    }
+
+    private Processor newProcessor(String clazz, Processor processor, AnnotationProcessorResult processorResult) {
+        ClassLoader classLoader = determineClassLoader();
+        try {
+            Class<?> aggregatingProcessorClass = classLoader.loadClass(clazz);
+            return (Processor) aggregatingProcessorClass.getConstructor(Processor.class, AnnotationProcessorResult.class).newInstance(processor, processorResult);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to create annotation processor", e);
+        }
+    }
+
+    private ClassLoader determineClassLoader() {
+        try {
+            getClass().getClassLoader().loadClass("com.sun.tools.javac.code.Symbol");
+            return getClass().getClassLoader();
+        } catch (Throwable t) {
+            return delegate.getClass().getClassLoader();
         }
     }
 

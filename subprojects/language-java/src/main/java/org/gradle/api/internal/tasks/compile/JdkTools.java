@@ -89,6 +89,7 @@ public class JdkTools {
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         filterSpec.allowPackage("com.sun.tools");
         filterSpec.allowPackage("com.sun.source");
+        filterSpec.allowPackage("org.gradle.api.internal.tasks.compile.incremental.processing");
         return classLoaderFactory.createFilteringClassLoader(getSystemClassLoader(), filterSpec);
     }
 
